@@ -9,6 +9,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaskInput from "react-native-mask-input";
@@ -16,6 +17,29 @@ import MaskInput from "react-native-mask-input";
 import { useState } from "react";
 
 import Colors from "@/constants/Colors";
+import {
+  isClerkAPIResponseError,
+  useSignIn,
+  useSignUp,
+} from "@clerk/clerk-expo";
+
+const ARG_PHONE = [
+  `+`,
+  /\d/,
+  /\d/,
+  " ",
+  /\d/,
+  /\d/,
+  /\d/,
+  " ",
+  /\d/,
+  /\d/,
+  /\d/,
+  /\d/,
+  /\d/,
+  /\d/,
+  /\d/,
+];
 
 const Page = () => {
   const [loading, setLoading] = useState(false);
@@ -23,24 +47,65 @@ const Page = () => {
   const router = useRouter();
   const keyboardVerticalOffset = Platform.OS === "ios" ? 90 : 0;
   const { bottom } = useSafeAreaInsets();
+  const { signUp, setActive } = useSignUp();
+  const { signIn } = useSignIn();
 
   const openLink = () => {
     Linking.openURL("https://beckmandev.vercel.app/");
   };
 
+  const trySignIn = async () => {
+    const { supportedFirstFactors } = await signIn!.create({
+      identifier: phoneNumber,
+    });
+
+    const firstPhoneFactor: any = supportedFirstFactors.find((factor: any) => {
+      return factor.strategy === "phone_code";
+    });
+
+    const { phoneNumberId } = firstPhoneFactor;
+
+    await signIn!.prepareFirstFactor({
+      strategy: "phone_code",
+      phoneNumberId,
+    });
+
+    router.push(`/verify/${phoneNumber}?signin=true`);
+    setLoading(false);
+  };
+
   const sendOTP = async () => {
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await signUp!.create({
+        phoneNumber,
+      });
+
+      signUp!.preparePhoneNumberVerification();
+
       router.push(`/verify/${phoneNumber}`);
-    }, 200);
+    } catch (error) {
+      console.log("error", JSON.stringify(error, null, 2));
+
+      if (isClerkAPIResponseError(error)) {
+        if (error.errors[0].code === "form_identifier_exists") {
+          console.log("Account already exists");
+          await trySignIn();
+        } else {
+          setLoading(false);
+          Alert.alert("Error", error.errors[0].message);
+        }
+      }
+    }
   };
 
-  const trySignIn = async () => {};
-
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }}>
+    <KeyboardAvoidingView
+      behavior="padding"
+      keyboardVerticalOffset={keyboardVerticalOffset}
+      style={{ flex: 1 }}
+    >
       <View style={styles.container}>
         {loading && (
           <View style={[StyleSheet.absoluteFill, styles.loading]}>
@@ -71,26 +136,10 @@ const Page = () => {
             autoFocus
             placeholder="+54 your phone number"
             style={styles.input}
-            onChangeText={(masked, unmasked) => {
+            onChangeText={(masked) => {
               setPhoneNumber(masked);
             }}
-            mask={[
-              "(",
-              /\d/,
-              /\d/,
-              ")",
-              " ",
-              /\d/,
-              /\d/,
-              /\d/,
-              /\d/,
-              /\d/,
-              "-",
-              /\d/,
-              /\d/,
-              /\d/,
-              /\d/,
-            ]}
+            mask={ARG_PHONE}
           />
         </View>
 
