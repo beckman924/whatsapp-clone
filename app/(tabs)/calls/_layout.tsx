@@ -14,7 +14,6 @@ const Layout = () => {
           title: "Calls",
           headerLargeTitle: true,
           headerShadowVisible: false,
-          headerBlurEffect: "regular",
           headerStyle: {
             backgroundColor: Colors.background,
           },
@@ -26,7 +25,7 @@ const Layout = () => {
               <Ionicons name="call-outline" color={Colors.primary} size={30} />
             </TouchableOpacity>
           ),
-          
+
         }}
       />
     </Stack>

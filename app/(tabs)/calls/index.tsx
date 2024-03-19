@@ -12,26 +12,50 @@ import {
   Platform,
 } from "react-native";
 import { format } from "date-fns";
+import Animated, {
+  CurvedTransition,
+  FadeInUp,
+  FadeOutUp,
+} from "react-native-reanimated";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Colors from "@/constants/Colors";
 import calls from "@/assets/data/calls.json";
 import { defaultStyles } from "@/constants/Styles";
+import { SegmentedControl } from "@/components/SegmentedControl";
+
+const transition = CurvedTransition.delay(100);
 
 const Page = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [items, setItems] = useState(calls);
+  const [selectedOption, setSelectedOption] = useState("All");
 
   const onEdit = () => {
     let editingNew = !isEditing;
     setIsEditing(editingNew);
   };
 
+  useEffect(() => {
+    if (selectedOption === "All") {
+      setItems(calls);
+    } else {
+      setItems(calls.filter((item) => item.missed));
+    }
+  }, [selectedOption]);
+
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
       <Stack.Screen
         options={{
+          headerTitle: () => (
+            <SegmentedControl
+              options={["All", "Missed"]}
+              selectedOption={selectedOption}
+              onOptionPress={setSelectedOption}
+            />
+          ),
           headerLeft: () => (
             <TouchableOpacity
               onPress={onEdit}
@@ -48,61 +72,68 @@ const Page = () => {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <View style={defaultStyles.block}>
-          <FlatList
+        <Animated.View style={defaultStyles.block} layout={transition}>
+          <Animated.FlatList
+            skipEnteringExitingAnimations
             data={items}
             scrollEnabled={false}
             keyExtractor={(item) => item.id.toString()}
             ItemSeparatorComponent={() => (
               <View style={defaultStyles.separator} />
             )}
-            renderItem={({ item }) => (
-              <View style={[defaultStyles.item]}>
-                <Image source={{ uri: item.img }} style={styles.avatar} />
+            itemLayoutAnimation={transition}
+            renderItem={({ item, index }) => (
+              <Animated.View
+                entering={FadeInUp.delay(index * 10)}
+                exiting={FadeOutUp}
+              >
+                <View style={[defaultStyles.item]}>
+                  <Image source={{ uri: item.img }} style={styles.avatar} />
 
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        color: item.missed ? Colors.red : "#000",
+                      }}
+                    >
+                      {item.name}
+                    </Text>
+
+                    <View style={{ flexDirection: "row", gap: 4 }}>
+                      <Ionicons
+                        name={item.video ? "videocam" : "call"}
+                        size={16}
+                        color={Colors.gray}
+                      />
+
+                      <Text style={{ color: Colors.gray, flex: 1 }}>
+                        {item.incoming ? "Incoming" : "Outgoing"}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View
                     style={{
-                      fontSize: 18,
-                      color: item.missed ? Colors.red : "#000",
+                      flexDirection: "row",
+                      gap: 6,
+                      alignItems: "center",
                     }}
                   >
-                    {item.name}
-                  </Text>
-
-                  <View style={{ flexDirection: "row", gap: 4 }}>
-                    <Ionicons
-                      name={item.video ? "videocam" : "call"}
-                      size={16}
-                      color={Colors.gray}
-                    />
-
-                    <Text style={{ color: Colors.gray, flex: 1 }}>
-                      {item.incoming ? "Incoming" : "Outgoing"}
+                    <Text style={{ color: Colors.gray }}>
+                      {format(item.date, "MM.dd.yy")}
                     </Text>
+                    <Ionicons
+                      name="information-circle-outline"
+                      size={24}
+                      color={Colors.primary}
+                    />
                   </View>
                 </View>
-
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 6,
-                    alignItems: "center",
-                  }}
-                >
-                  <Text style={{ color: Colors.gray }}>
-                    {format(item.date, "MM.dd.yy")}
-                  </Text>
-                  <Ionicons
-                    name="information-circle-outline"
-                    size={24}
-                    color={Colors.primary}
-                  />
-                </View>
-              </View>
+              </Animated.View>
             )}
           />
-        </View>
+        </Animated.View>
       </ScrollView>
     </View>
   );
