@@ -3,8 +3,14 @@ import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as SecureStore from "expo-secure-store";
+export { ErrorBoundary } from "expo-router";
+
+import { View } from "react-native";
+
+import { useEffect } from "react";
 
 import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
+
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 // Cache the Clerk JWT
@@ -25,11 +31,6 @@ const tokenCache = {
     }
   },
 };
-
-import { useEffect } from "react";
-import { View } from "react-native";
-
-export { ErrorBoundary } from "expo-router";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -55,7 +56,7 @@ const InitialLayout = () => {
   useEffect(() => {
     if (!isLoaded) return;
 
-    const inTabsGroup = segments[0] === "(tabs)";
+    const inTabsGroup = segments[0] === "(auth)";
 
     if (isSignedIn && !inTabsGroup) {
       router.replace("/(tabs)/chats");
@@ -84,7 +85,15 @@ const InitialLayout = () => {
         name="verify/[phone]"
         options={{
           headerTitle: "Verify Your Phone Number",
+          headerShown: true,
           headerBackTitle: "Edit number",
+        }}
+      />
+
+      <Stack.Screen
+        name="(tabs)"
+        options={{
+          headerShown: false,
         }}
       />
     </Stack>
