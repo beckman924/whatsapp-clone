@@ -35,8 +35,11 @@ const ChatRow: FC<ChatRowProps> = ({
 }) => {
   return (
     <AppleStyleSwipeableRow>
-      <Link href={"/(tabs)/chats"} asChild>
-        <TouchableHighlight activeOpacity={0.6} underlayColor={Colors.lightGray}>
+      <Link href={`/(tabs)/chats/${id}`} asChild>
+        <TouchableHighlight
+          activeOpacity={0.6}
+          underlayColor={Colors.lightGray}
+        >
           <View
             style={{
               flexDirection: "row",
@@ -59,7 +62,13 @@ const ChatRow: FC<ChatRowProps> = ({
               </Text>
             </View>
 
-            <Text style={{ color: Colors.gray, paddingRight: 20, alignSelf: "flex-start" }}>
+            <Text
+              style={{
+                color: Colors.gray,
+                paddingRight: 20,
+                alignSelf: "flex-start",
+              }}
+            >
               {format(date, "MM/dd/yy")}
             </Text>
           </View>
