@@ -40,7 +40,11 @@ const Layout = () => {
                 />
               </TouchableOpacity>
 
-              <Link href={"/"} asChild style={{ paddingRight: 10 }}>
+              <Link
+                href={"/(modals)/new-chat"}
+                asChild
+                style={{ paddingRight: 10 }}
+              >
                 <Ionicons name="add-circle" color={Colors.primary} size={30} />
               </Link>
             </View>

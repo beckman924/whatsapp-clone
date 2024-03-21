@@ -1,4 +1,4 @@
-import { FlatList, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FlatList, ScrollView, View } from "react-native";
 
 import chats from "@/assets/data/chats.json";
 import { defaultStyles } from "@/constants/Styles";
@@ -8,7 +8,7 @@ const Page = () => {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ paddingBottom: 40, backgroundColor: "#fff" }}
+      contentContainerStyle={{ paddingTop: 100, paddingBottom: 40, backgroundColor: "#fff" }}
     >
       <FlatList
         scrollEnabled={false}
@@ -23,4 +23,3 @@ const Page = () => {
   );
 };
 export default Page;
-const styles = StyleSheet.create({});
