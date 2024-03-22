@@ -9,16 +9,23 @@ import {
 } from "react-native-gifted-chat";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import messageData from "@/assets/data/messages.json";
 import Colors from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
+import { Swipeable } from "react-native-gesture-handler";
+import ChatMessageBox from "@/components/ChatMessageBox";
+import ReplyMessageBar from "@/components/ReplyMessageBar";
 
 const Page = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const insets = useSafeAreaInsets();
   const [text, setText] = useState("");
+
+  const swipeableRowRef = useRef<Swipeable | null>(null);
+
+  const [replyMessage, setReplyMessage] = useState<IMessage | null>(null);
 
   useEffect(() => {
     setMessages([
@@ -51,6 +58,26 @@ const Page = () => {
       GiftedChat.append(previousMessages, messages)
     );
   }, []);
+
+  const updateRowRef = useCallback(
+    (ref: any) => {
+      if (
+        ref &&
+        replyMessage &&
+        ref.props.children.props.currentMessage?._id === replyMessage._id
+      ) {
+        swipeableRowRef.current = ref;
+      }
+    },
+    [replyMessage]
+  );
+
+  useEffect(() => {
+    if (replyMessage && swipeableRowRef.current) {
+      swipeableRowRef.current.close();
+      swipeableRowRef.current = null;
+    }
+  }, [replyMessage]);
 
   return (
     <ImageBackground
@@ -137,6 +164,19 @@ const Page = () => {
           />
         )}
         textInputProps={styles.composer}
+        renderMessage={(props) => (
+          <ChatMessageBox
+            {...props}
+            updateRowRef={updateRowRef}
+            setReplyOnSwipeOpen={setReplyMessage}
+          />
+        )}
+        renderChatFooter={() => (
+          <ReplyMessageBar
+            clearReply={() => setReplyMessage(null)}
+            message={replyMessage}
+          />
+        )}
       />
     </ImageBackground>
   );
